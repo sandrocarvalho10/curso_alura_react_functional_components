@@ -1,35 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button, TextField, Switch, FormControlLabel } from '@material-ui/core';
+import ValidacoesCadastro from '../../contexts/validacoesCadastro';
+import useErros from '../../hooks/useErros';
 
 
-function DadosPessoais({ aoEnviar, validacoes }) {
+function DadosPessoais({ aoEnviar }) {
   const [nome, setNome] = useState("");
   const [sobrenome, setSobrenome] = useState("");
   const [cpf, setCpf] = useState("");
   const [promocoes, setPromocoes] = useState(true);
-  const [novidades, setNovidades] = useState(true);
-  const [erros, setErros] = useState({ cpf: { valido: true, texto: "" } })
-
-  function validarCampos(e) {
-    const { name, value } = e.target
-    const ehValido = validacoes[name](value)
-    const novoEstado = {...erros}
-    novoEstado[name] = ehValido
-    setErros(novoEstado)
-
-  }
-
+  const [novidades, setNovidades] = useState(true);  
+  const validacoes = useContext(ValidacoesCadastro)
+  // hook customizado
+  const [erros, validarCampos, possoEnviar] = useErros(validacoes)
+  
+  
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        aoEnviar({ nome, sobrenome, cpf, promocoes, novidades })
+        if(possoEnviar()){
+          aoEnviar({ nome, sobrenome, cpf, promocoes, novidades })
+        }
       }}
     >
       <TextField
         id="nome"
         label="Nome"
         variant="outlined"
+        name="nome"
         fullWidth
         required
         margin="normal"
@@ -37,12 +36,16 @@ function DadosPessoais({ aoEnviar, validacoes }) {
         onChange={(event) => {
           setNome(event.target.value);
         }}
+        onBlur={validarCampos}
+        error={!erros.nome.valido}
+        helperText={erros.nome.texto}
       />
 
       <TextField
         id="sobrenome"
         label="Sobrenome"
         variant="outlined"
+        name="sobrenome"
         fullWidth
         required
         margin="normal"
@@ -101,7 +104,7 @@ function DadosPessoais({ aoEnviar, validacoes }) {
       />
 
       <Button type="submit" variant="contained" color="primary">
-        Cadastrar
+        Próximo
       </Button>
     </form>
   );
